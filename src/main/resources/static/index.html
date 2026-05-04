@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafka Chat | Dashboard</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        h2 { color: var(--primary-color); margin-bottom: 1.5rem; }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus { border-color: var(--primary-color); }
+
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s, background 0.3s;
+        }
+
+        button:hover { background-color: #357abd; transform: scale(1.05); }
+
+        .log-container {
+            margin-top: 2rem;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+
+        .log-item {
+            background: #eef2f7;
+            padding: 8px 12px;
+            border-radius: 5px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Kafka Mesaj Paneli</h2>
+    <div class="input-group">
+        <input type="text" id="mesajKutusu" placeholder="Bir mesaj yazın...">
+        <button onclick="mesajGonder()">Gönder</button>
+    </div>
+    <div class="log-container" id="logPanel">
+        <div style="color: #888; font-size: 0.8rem; text-align: center;">Mesaj geçmişi burada görünecek</div>
+    </div>
+</div>
+
+</div>
+
+<script>
+    function mesajGonder() {
+        const input = document.getElementById("mesajKutusu");
+        const logPanel = document.getElementById("logPanel");
+        const mesaj = input.value;
+
+        if (!mesaj) return;
+
+        // Backend'e istek gönder
+        fetch('/send?m=' + encodeURIComponent(mesaj))
+            .then(response => {
+                if(response.ok) {
+                    const item = document.createElement("div");
+                    item.className = "log-item";
+                    item.innerHTML = `<b>Sen:</b> ${mesaj} <span style="float:right; font-size: 0.7rem; color: #999;">${new Date().toLocaleTimeString()}</span>`;
+                    logPanel.prepend(item);
+                    input.value = "";
+                }
+            })
+            .catch(err => alert("Kafka bağlantısı başarısız!"));
+    }
+</script>
+
+</body>
+</html>
