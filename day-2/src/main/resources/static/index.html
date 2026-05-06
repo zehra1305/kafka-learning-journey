@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafka | İşlem Kontrol Merkezi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .card {
+            background: var(--card);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 2px solid var(--bg);
+            padding-bottom: 1rem;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-top: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #64748b;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 1.5rem;
+            padding: 0.75rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: #1d4ed8;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .badges {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 600;
+        }
+
+        #status {
+            margin-top: 1rem;
+            text-align: center;
+            font-size: 0.875rem;
+            min-height: 1.25rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Kafka Dashboard</h2>
+
+    <div class="input-group">
+        <label for="messageInput">Mesaj İçeriği</label>
+        <input type="text" id="messageInput" placeholder="Örn: ACIL: Veri tabanı hatası" autocomplete="off">
+    </div>
+
+    <div class="badges">
+        <span class="badge">#emergency-topic</span>
+        <span class="badge">#general-topic</span>
+    </div>
+
+    <button onclick="sendData()">Mesajı Gönder</button>
+
+    <div id="status"></div>
+</div>
+
+<script>
+    async function sendData() {
+        const input = document.getElementById('messageInput');
+        const status = document.getElementById('status');
+        const message = input.value; // Değişken adı 'message'
+
+        if (!message) {
+            status.innerText = "⚠️ Lütfen bir mesaj yazın.";
+            status.style.color = "#dc2626";
+            return;
+        }
+
+        try {
+            // 'mesaj' değil 'message' olmalı ve 'response'a atanmalı
+            const response = await fetch('/api/kafka/send?message=' + encodeURIComponent(message));
+
+            if (response.ok) {
+                status.innerText = "✅ Mesaj başarıyla iletildi.";
+                status.style.color = "#16a34a";
+                input.value = '';
+            } else {
+                status.innerText = "❌ Bir hata oluştu (Sunucu hatası).";
+                status.style.color = "#dc2626";
+            }
+        } catch (error) {
+            console.error(error); // Gerçek hatayı konsolda görmek için
+            status.innerText = "🌐 Sunucuya bağlanılamadı veya JS hatası var.";
+            status.style.color = "#dc2626";
+        }
+
+        setTimeout(() => { status.innerText = ""; }, 3000);
+    }
+</script>
+
+</body>
+</html>
