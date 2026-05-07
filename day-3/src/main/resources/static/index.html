@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Z-Bank | Kafka Transfer Paneli</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        h2 {
+            color: #1a3a5f;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Zehra Bank Transfer</h2>
+
+    <div class="form-group">
+        <label>Gönderen</label>
+        <input type="text" id="gonderen" placeholder="Adınız">
+    </div>
+
+    <div class="form-group">
+        <label>Alıcı</label>
+        <input type="text" id="alici" placeholder="Alıcı adı">
+    </div>
+
+    <div class="form-group">
+        <label>Miktar (TL)</label>
+        <input type="number" id="para" placeholder="0.00">
+    </div>
+
+    <div class="form-group">
+        <label>Açıklama</label>
+        <textarea id="aciklama" rows="2" placeholder="İşlem notu..."></textarea>
+    </div>
+
+    <button onclick="sendTransfer()">Transferi Tamamla</button>
+
+    <div id="result"></div>
+</div>
+
+<script>
+    async function sendTransfer() {
+        const resultDiv = document.getElementById('result');
+
+        // Verileri topluyoruz (Senin parametrelerinle birebir uyumlu)
+        const data = {
+            gönderen: document.getElementById('gonderen').value,
+            alıcı: document.getElementById('alici').value,
+            para: parseFloat(document.getElementById('para').value),
+            aciklama: document.getElementById('aciklama').value
+        };
+
+        try {
+            const response = await fetch('http://localhost:8080/transfer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+
+            const message = await response.text();
+
+            resultDiv.style.display = 'block';
+            if (response.ok) {
+                resultDiv.style.backgroundColor = '#d4edda';
+                resultDiv.style.color = '#155724';
+                resultDiv.innerText = message; // "İşlem Başarılı" dönecek
+            } else {
+                resultDiv.style.backgroundColor = '#f8d7da';
+                resultDiv.style.color = '#721c24';
+                resultDiv.innerText = "Hata oluştu!";
+            }
+        } catch (error) {
+            console.error('Hata:', error);
+            alert("Sunucuya bağlanılamadı!");
+        }
+    }
+</script>
+
+</body>
+</html>
