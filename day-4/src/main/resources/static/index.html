@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Z-Food Sipariş Paneli</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 50px; background: #f4f4f9; }
+        .card { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 350px; }
+        h2 { text-align: center; color: #ff4757; margin-bottom: 20px; }
+        input { width: 100%; margin-bottom: 15px; padding: 12px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        button { width: 100%; padding: 12px; background: #2f3542; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        button:hover { background: #57606f; }
+        #status { text-align: center; margin-top: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🍕 Zehra Food Panel</h2>
+    <input type="number" id="siparisId" placeholder="Sipariş ID">
+    <input type="text" id="yemekAdi" placeholder="Yemek Adı (Örn: Pizza)">
+    <input type="number" step="0.01" id="para" placeholder="Fiyat (TL)">
+    <input type="text" id="musteriAdresi" placeholder="Teslimat Adresi">
+    <button onclick="siparisVer()">Siparişi Tamamla</button>
+    <div id="status"></div>
+</div>
+
+<script>
+    function siparisVer() {
+        const status = document.getElementById('status');
+        const data = {
+            siparisId: document.getElementById('siparisId').value,
+            yemekAdi: document.getElementById('yemekAdi').value,
+            para: document.getElementById('para').value,
+            musteriAdresi: document.getElementById('musteriAdresi').value
+        };
+
+        // Controller'da path vermediğin için doğrudan root'a ( / ) POST atıyoruz.
+        // Eski hali: fetch('/', { ...
+        fetch('/siparis-ver', { // Yeni endpoint'e istek atıyoruz
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        })
+            .then(response => {
+                if (response.ok) {
+                    status.innerText = "Sipariş Kafka'ya iletildi! 🚀";
+                    status.style.color = "green";
+                } else {
+                    status.innerText = "Hata: " + response.status;
+                    status.style.color = "red";
+                }
+            })
+            .catch(error => {
+                status.innerText = "Sunucuya bağlanılamadı!";
+                status.style.color = "red";
+                console.error('Hata:', error);
+            });
+    }
+</script>
+
+</body>
+</html>
