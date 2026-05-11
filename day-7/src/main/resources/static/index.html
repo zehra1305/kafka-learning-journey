@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FestGuard Ultra | Day-7 Elite Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            /* Dinamik ve derinlikli arka plan */
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Arka plan ışık oyunları */
+        body::after {
+            content: "";
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(0, 242, 255, 0.15), transparent 70%);
+            top: -10%;
+            left: -10%;
+            z-index: 0;
+        }
+
+        .glass-card {
+            position: relative;
+            z-index: 1;
+            width: 480px;
+            padding: 3rem;
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            text-align: center;
+        }
+
+        h2 {
+            font-weight: 700;
+            font-size: 2.2rem;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 10px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #00f2ff;
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            margin-top: 1rem;
+            background: linear-gradient(90deg, #00f2ff, #0072ff);
+            border: none;
+            border-radius: 15px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 114, 255, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        #status {
+            margin-top: 1.5rem;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Select kutusunun okunu beyazlatma */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="glass-card">
+    <h2>FestGuard Pro</h2>
+    <p>Giriş Kontrol ve Doğrulama Sistemi</p>
+
+    <div class="input-group">
+        <label>Ziyaretçi Kimliği</label>
+        <input type="text" id="ad" placeholder="Ad Soyad" autocomplete="off">
+    </div>
+
+    <div class="input-group">
+        <label>Dijital Bilet Kodu</label>
+        <input type="text" id="biletno" placeholder="Örn: X-990-21" autocomplete="off">
+    </div>
+
+    <div class="input-group">
+        <label>Erişim Noktası</label>
+        <select id="kapi">
+            <option value="" disabled selected>Nokta Seçin</option>
+            <option value="Kuzey Kapısı">Kuzey Kapısı (Main)</option>
+            <option value="Güney Kapısı">Güney Kapısı (Main)</option>
+            <option value="VIP Lounge">VIP Lounge Access</option>
+            <option value="Sahne Arkası">Backstage Entry</option>
+        </select>
+    </div>
+
+    <button onclick="processEntry()">DOĞRULAMAYI BAŞLAT</button>
+    <div id="status"></div>
+</div>
+
+<script>
+    async function processEntry() {
+        const ad = document.getElementById('ad').value;
+        const biletno = document.getElementById('biletno').value;
+        const kapi = document.getElementById('kapi').value;
+        const statusDiv = document.getElementById('status');
+
+        if(!ad || !biletno || !kapi) {
+            updateStatus("Lütfen tüm alanları eksiksiz doldurun.", "rgba(255, 68, 68, 0.1)", "#ff4444");
+            return;
+        }
+
+        const data = { ad, biletno, kapi, isVip: false };
+
+        try {
+            const response = await fetch('http://localhost:8080/api/bilet/okut', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            updateStatus("Sorgu gönderildi. Sistem yanıtı bekleniyor...", "rgba(0, 242, 255, 0.1)", "#00f2ff");
+        } catch (e) {
+            updateStatus("Sistem bağlantısı kurulamadı!", "rgba(255, 68, 68, 0.1)", "#ff4444");
+        }
+    }
+
+    function updateStatus(msg, bg, color) {
+        const statusDiv = document.getElementById('status');
+        statusDiv.style.display = 'block';
+        statusDiv.style.background = bg;
+        statusDiv.style.color = color;
+        statusDiv.style.border = `1px solid ${color}33`;
+        statusDiv.innerText = msg;
+    }
+</script>
+
+</body>
+</html>
