@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Day-9 | Secure Payment Gateway</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --danger: #ef4444;
+            --success: #10b981;
+            --bg: #0f172a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            width: 900px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Ödeme Kartı Formu */
+        .payment-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .credit-card-ui {
+            background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            height: 180px;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .input-group { margin-bottom: 15px; }
+        label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-top: 10px;
+        }
+
+        button:hover { background: #4338ca; transform: translateY(-2px); }
+
+        /* İşlem Logları Paneli */
+        .log-panel {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            height: 500px;
+            overflow-y: auto;
+        }
+
+        .log-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 13px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .status-success { color: var(--success); }
+        .status-fraud { color: var(--danger); font-weight: bold; background: rgba(239, 68, 68, 0.1); padding: 5px; border-radius: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="payment-card">
+        <div class="credit-card-ui">
+            <div style="font-size: 24px;"><i class="fab fa-cc-visa"></i></div>
+            <div id="card-number-display" style="margin-top: 40px; font-size: 20px; letter-spacing: 2px;">**** **** **** ****</div>
+            <div id="card-holder-display" style="margin-top: 20px; font-size: 14px; text-transform: uppercase;">KART SAHİBİ</div>
+        </div>
+
+        <div class="input-group">
+            <label>Kart Sahibi Adı</label>
+            <input type="text" id="kartsahibiAdi" placeholder="AD SOYAD" oninput="updateCard()">
+        </div>
+        <div class="input-group">
+            <label>Kart Numarası</label>
+            <input type="text" id="kartNo" placeholder="4444-xxxx-xxxx-xxxx" oninput="updateCard()">
+        </div>
+        <div class="input-group">
+            <label>Tutar (TL)</label>
+            <input type="number" id="para" value="100.00">
+        </div>
+        <button onclick="odemeYap()">Ödemeyi Tamamla</button>
+    </div>
+
+    <div class="log-panel">
+        <h3 style="margin-top: 0;"><i class="fas fa-satellite-dish"></i> İşlem Kayıtları (Kafka)</h3>
+        <div id="logs">
+            <div class="log-item" style="color: #64748b;">Sistem hazır, işlemler bekleniyor...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateCard() {
+        document.getElementById('card-number-display').innerText = document.getElementById('kartNo').value || "**** **** **** ****";
+        document.getElementById('card-holder-display').innerText = document.getElementById('kartsahibiAdi').value || "KART SAHİBİ";
+    }
+
+    async function odemeYap() {
+        const data = {
+            kartsahibiAdi: document.getElementById('kartsahibiAdi').value,
+            kartNo: document.getElementById('kartNo').value,
+            para: parseFloat(document.getElementById('para').value)
+        };
+
+        const logs = document.getElementById('logs');
+        const time = new Date().toLocaleTimeString();
+
+        try {
+            const response = await fetch('http://localhost:8080/gonder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-item';
+            logEntry.innerHTML = `[${time}] <span class="status-success">İstek Gönderildi:</span> ${data.kartNo}`;
+            logs.prepend(logEntry);
+
+        } catch (error) {
+            console.error('Hata:', error);
+        }
+    }
+</script>
+
+</body>
+</html>

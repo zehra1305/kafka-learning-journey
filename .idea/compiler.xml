@@ -8,6 +8,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="kafka-mini-demo" />
         <module name="kafka_cal-sma" />
+        <module name="day-9" />
         <module name="day-8" />
         <module name="day-7" />
         <module name="day-6" />
@@ -25,6 +26,7 @@
       <module name="day-6" options="-parameters" />
       <module name="day-7" options="-parameters" />
       <module name="day-8" options="-parameters" />
+      <module name="day-9" options="-parameters" />
       <module name="kafka-mini-demo" options="-parameters" />
       <module name="kafka_cal-sma" options="-parameters" />
     </option>
