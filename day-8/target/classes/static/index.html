@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafka Öğrenci Test Paneli</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #eef2f3; }
+        .card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #34495e; font-weight: 600; }
+        input { width: 100%; padding: 12px; border: 2px solid #dfe6e9; border-radius: 8px; box-sizing: border-box; transition: border-color 0.3s; }
+        input:focus { border-color: #3498db; outline: none; }
+        button { width: 100%; padding: 14px; background-color: #3498db; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; transition: background 0.3s; margin-top: 10px; }
+        button:hover { background-color: #2980b9; }
+        #status { margin-top: 20px; text-align: center; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Öğrenci Kayıt Formu</h2>
+
+    <div class="form-group">
+        <label>Adı</label>
+        <input type="text" id="adi" placeholder="Örn: ">
+    </div>
+    <div class="form-group">
+        <label>Soyadı</label>
+        <input type="text" id="soyadi" placeholder="Örn: ">
+    </div>
+    <div class="form-group">
+        <label>Öğrenci Numarası</label>
+        <input type="number" id="no" placeholder="Örn: 123456">
+    </div>
+    <div class="form-group">
+        <label>Sınıfı</label>
+        <input type="text" id="sinif" placeholder="Örn: 4-B">
+    </div>
+
+    <button onclick="sendToKafka()">Kafka'ya Gönder</button>
+    <div id="status"></div>
+</div>
+
+<script>
+    async function sendToKafka() {
+        const status = document.getElementById('status');
+
+        // ID'yi biz otomatik 0 veya rastgele bir sayı gönderelim ki DTO boş kalmasın
+        const studentData = {
+            id: Math.floor(Math.random() * 1000), // Geçici olarak rastgele ID
+            adi: document.getElementById('adi').value,
+            soyadi: document.getElementById('soyadi').value,
+            ogrenciNumarasi: parseInt(document.getElementById('no').value),
+            sinifi: document.getElementById('sinif').value
+        };
+
+        if(!studentData.adi || !studentData.soyadi || isNaN(studentData.ogrenciNumarasi)) {
+            status.innerHTML = "<span style='color: #e67e22;'>Lütfen tüm alanları doldurun!</span>";
+            return;
+        }
+
+        try {
+            status.innerHTML = "<span style='color: #3498db;'>Mesaj iletiliyor...</span>";
+
+            const response = await fetch('http://localhost:8080/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(studentData)
+            });
+
+            if (response.ok) {
+                status.innerHTML = "<span style='color: #27ae60;'>✅ Kafka'ya başarıyla uçuruldu!</span>";
+                // Formu temizle
+                document.querySelectorAll('input').forEach(input => input.value = '');
+            } else {
+                status.innerHTML = "<span style='color: #e74c3c;'>❌ Bir hata oluştu (Status: " + response.status + ")</span>";
+            }
+        } catch (error) {
+            status.innerHTML = "<span style='color: #e74c3c;'>❌ Sunucu kapalı mı? Bağlantı hatası!</span>";
+            console.error('Hata:', error);
+        }
+    }
+</script>
+
+</body>
+</html>
